@@ -59,10 +59,17 @@ export default function Welcome() {
   }
 
   function handleRegister() {
+    if (registrationData.email !== registrationData.confirmEmail) {
+      alert('Please confirm email is the same')
+      return
+    } else if (registrationData.password !== registrationData.confirmPassword) {
+      alert('Please confirm password is the same')
+      return
+    }
     createUserWithEmailAndPassword(
       auth,
-      userData.email,
-      userData.password
+      registrationData.email,
+      registrationData.password
     ).then(() => {
       navigate('/homepage')
     })
