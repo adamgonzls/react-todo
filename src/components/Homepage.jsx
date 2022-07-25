@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { signOut, onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '../firebase'
-import { set, ref, onValue } from 'firebase/database'
+import { set, ref, onValue, remove, update } from 'firebase/database'
 import { useNavigate } from 'react-router-dom'
 import { uid } from 'uid'
+import './homepage.css'
 
 export default function Homepage() {
   const navigate = useNavigate()
   const [todo, setTodo] = useState({
     todoText: '',
+    complete: false,
   })
   const [todos, setTodos] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
+  const [tempUid2, setTempUid2] = useState('')
 
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
@@ -21,7 +25,7 @@ export default function Homepage() {
           // console.log(data)
           if (data !== null) {
             Object.values(data).map((todo) => {
-              console.log(todo)
+              // console.log(todo)
               setTodos((oldData) => [...oldData, todo])
             })
           }
@@ -62,33 +66,90 @@ export default function Homepage() {
     set(ref(db, `/${auth.currentUser.uid}/${uid2}`), {
       uid2: uid2,
       todoText: todo.todoText,
+      complete: todo.complete,
     })
-    // I'm not too sure about this
-    setTodo((prevTodo) => {
+    // this resets the field to blank
+    setTodo((prevData) => {
       return {
-        ...prevTodo,
+        ...prevData,
         todoText: '',
       }
     })
   }
 
   // update
+  function handleUpdate(todo) {
+    setIsEdit(true)
+    setTodo((prevTodo) => {
+      return {
+        ...prevTodo,
+        todoText: todo.todoText,
+      }
+    })
+    setTempUid2(todo.uid2)
+  }
+
+  function handleComplete(todo) {
+    console.log(todo)
+    update(ref(db, `/${auth.currentUser.uid}/${todo.uid2}`), {
+      todoText: todo.todoText,
+      uid2: todo.uid2,
+      complete: !todo.complete,
+    })
+  }
+
+  function handleEditConfirm(todo) {
+    update(ref(db, `/${auth.currentUser.uid}/${tempUid2}`), {
+      todoText: todo.todoText,
+      uid2: tempUid2,
+    })
+
+    setTodo((prevTodo) => {
+      return {
+        ...prevTodo,
+        todoText: '',
+      }
+    })
+    setIsEdit(false)
+  }
+
   // delete
+  function handleDelete(uid2) {
+    remove(ref(db, `/${auth.currentUser.uid}/${uid2}`))
+  }
 
   return (
     <div>
-      <input
-        type='text'
-        name='todoText'
-        placeholder='Add todo'
-        value={todo.todoText}
-        onChange={handleInputChange}
-      />
+      <div className='todo__entry'>
+        <input
+          type='text'
+          name='todoText'
+          placeholder='Add todo'
+          value={todo.todoText}
+          onChange={handleInputChange}
+        />
+        {isEdit ? (
+          <button onClick={() => handleEditConfirm(todo)}>
+            Confirm Update
+          </button>
+        ) : (
+          <button onClick={writeToDatabase}>Add</button>
+        )}
+      </div>
 
       {todos.map((todo) => {
-        return <h2>{todo.todoText ? todo.todoText : todo.todo}</h2>
+        return (
+          <div className='todo__item'>
+            <p className={todo.complete ? 'todo--complete' : ''}>
+              {todo.todoText}
+            </p>
+            <button onClick={() => handleUpdate(todo)}>update</button>
+            <button onClick={() => handleComplete(todo)}>Complete</button>
+            <button onClick={() => handleDelete(todo.uid2)}>delete</button>
+          </div>
+        )
       })}
-      <button onClick={writeToDatabase}>Add</button>
+
       <button onClick={handleSignOut}>Sign out</button>
     </div>
   )

@@ -1,0 +1,7 @@
+.todo__item {
+  display: flex;
+}
+
+.todo--complete {
+  text-decoration: line-through;
+}
