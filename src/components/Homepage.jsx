@@ -120,6 +120,7 @@ export default function Homepage() {
 
   return (
     <div>
+      <h2>Add new todo:</h2>
       <div className='todo__entry'>
         <input
           type='text'
@@ -139,13 +140,36 @@ export default function Homepage() {
 
       {todos.map((todo) => {
         return (
-          <div className='todo__item'>
-            <p className={todo.complete ? 'todo--complete' : ''}>
-              {todo.todoText}
-            </p>
-            <button onClick={() => handleUpdate(todo)}>update</button>
-            <button onClick={() => handleComplete(todo)}>Complete</button>
-            <button onClick={() => handleDelete(todo.uid2)}>delete</button>
+          <div className='todos'>
+            {!todo.complete ? (
+              <section>
+                <h2>Open todos:</h2>
+                <div className='todo__item'>
+                  <button onClick={() => handleComplete(todo)}>Complete</button>
+                  <p className={todo.complete ? 'todo--complete' : ''}>
+                    {todo.todoText}
+                  </p>
+                  <button onClick={() => handleUpdate(todo)}>update</button>
+                  <button onClick={() => handleDelete(todo.uid2)}>
+                    delete
+                  </button>
+                </div>
+              </section>
+            ) : (
+              <section>
+                <h2>Closed todos:</h2>
+                <div className='todo__item'>
+                  <button onClick={() => handleComplete(todo)}>Complete</button>
+                  <p className={todo.complete ? 'todo--complete' : ''}>
+                    {todo.todoText}
+                  </p>
+                  <button onClick={() => handleUpdate(todo)}>update</button>
+                  <button onClick={() => handleDelete(todo.uid2)}>
+                    delete
+                  </button>
+                </div>
+              </section>
+            )}
           </div>
         )
       })}
